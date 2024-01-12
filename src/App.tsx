@@ -6,8 +6,8 @@ import './App.css'
 import 'react-datepicker/dist/react-datepicker.css'
 
 function App() {
-  const [startDate, setStartDate] = useState(new Date())
-  const [endDate, setEndDate] = useState(new Date())
+  const [startDate, setStartDate] = useState<Date | null>(new Date())
+  const [endDate, setEndDate] = useState<Date | null>(new Date())
   const [diff, setDiff] = useState(0)
 
   // we lazy for now, so we use useEffect
