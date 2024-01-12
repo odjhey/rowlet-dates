@@ -1,13 +1,24 @@
 import { useEffect, useState } from 'react'
-import DatePicker from 'react-datepicker'
 import dayjs from 'dayjs'
 
 import './App.css'
-import 'react-datepicker/dist/react-datepicker.css'
+
+const DatePicker = (props: {
+  selected: Date
+  onChange: (date: Date) => void
+}) => {
+  return (
+    <input
+      type="date"
+      value={props.selected.toISOString().slice(0, 10)}
+      onChange={(e) => props.onChange(new Date(e.target.value))}
+    />
+  )
+}
 
 function App() {
-  const [startDate, setStartDate] = useState<Date | null>(new Date())
-  const [endDate, setEndDate] = useState<Date | null>(new Date())
+  const [startDate, setStartDate] = useState<Date>(new Date())
+  const [endDate, setEndDate] = useState<Date>(new Date())
   const [diff, setDiff] = useState(0)
 
   // we lazy for now, so we use useEffect
