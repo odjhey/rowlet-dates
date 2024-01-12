@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 
 import './App.css'
+import useSet from './hooks/use-set'
 
 const DatePicker = (props: {
   selected: Date
@@ -16,10 +17,21 @@ const DatePicker = (props: {
   )
 }
 
+function getDateArray(from: Date, to: Date) {
+  const fromDate = dayjs(from)
+  const toDate = dayjs(to)
+  const diffDays = toDate.diff(fromDate, 'day')
+
+  return Array.from({ length: diffDays + 1 }, (_, index) =>
+    fromDate.add(index, 'day').toDate(),
+  )
+}
+
 function App() {
   const [startDate, setStartDate] = useState<Date>(new Date())
   const [endDate, setEndDate] = useState<Date>(new Date())
   const [diff, setDiff] = useState(0)
+  const [selectedDates, selectedDateActions] = useSet(new Set<string>())
 
   // we lazy for now, so we use useEffect
   useEffect(() => {
@@ -43,6 +55,52 @@ function App() {
           />
         </div>
         <div>diff: {diff}</div>
+      </div>
+
+      <div className="flex gap-2 flex-wrap">
+        {getDateArray(startDate, endDate).map((date) => {
+          const badgeClass = selectedDateActions.has(date.toISOString())
+            ? 'badge-accent'
+            : 'badge-neutral'
+
+          return (
+            <div
+              key={date.toISOString()}
+              className={`badge ${badgeClass}`}
+              onClick={() => {
+                if (selectedDateActions.has(date.toISOString())) {
+                  selectedDateActions.remove(date.toISOString())
+                } else {
+                  selectedDateActions.add(date.toISOString())
+                }
+              }}
+            >
+              {dayjs(date).format('YY-MM-DD ddd')}
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="divider"></div>
+      {JSON.stringify(selectedDates.size)}
+      <div className="flex flex-wrap gap-2">
+        {[...selectedDates.values()].map((date) => {
+          return (
+            <div
+              key={date}
+              className={`badge badge-neutral`}
+              onClick={() => {
+                if (selectedDateActions.has(date)) {
+                  selectedDateActions.remove(date)
+                } else {
+                  selectedDateActions.add(date)
+                }
+              }}
+            >
+              {dayjs(date).format('YY-MM-DD ddd')}
+            </div>
+          )
+        })}
       </div>
     </>
   )
