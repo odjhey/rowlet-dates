@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 
 import './App.css'
 import useSet from './hooks/use-set'
+import { Hours } from './components/Hours'
 
 const DatePicker = (props: {
   selected: Date
@@ -102,6 +103,8 @@ function App() {
           )
         })}
       </div>
+      <div className="divider"></div>
+      <Hours></Hours>
     </>
   )
 }
