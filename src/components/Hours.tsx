@@ -32,19 +32,24 @@ const Total = ({ control }: { control: Control<FormValues> }) => {
 
   return (
     <>
-      <textarea
-        readOnly
-        className="textarea textarea-bordered min-h-40"
-        value={summary.join('\n')}
-      ></textarea>
-      <div>
-        total:{' '}
+      <div className="flex gap-2 items-center">
+        <div>total:</div>
         <input
           readOnly
           className="input input-sm input-bordered"
           value={totalMins}
         ></input>
+        <input
+          readOnly
+          className="input input-sm input-bordered"
+          value={totalMins / 60}
+        ></input>
       </div>
+      <textarea
+        readOnly
+        className="textarea textarea-bordered min-h-40"
+        value={summary.join('\n')}
+      ></textarea>
     </>
   )
 }
@@ -173,7 +178,71 @@ export default function App() {
           </button>
         </div>
         <Total control={control} />
+        <Gantt control={control} />
       </form>
     </div>
+  )
+}
+
+type TimeBlock = {
+  name: string
+  from: string
+  to: string
+}
+
+type GanttChartOutput = (string | number)[][]
+
+function timeToBlockIndex(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number)
+  return hours * 2 + (minutes >= 30 ? 1 : 0)
+}
+
+function generateGanttChart(hours: TimeBlock[]): GanttChartOutput {
+  return hours.map((hour) => {
+    const fromIndex = timeToBlockIndex(hour.from)
+    const toIndex = timeToBlockIndex(hour.to)
+
+    // Initialize row with '0's and the task name
+    const row: (string | number)[] = new Array(48).fill(0)
+    row[0] = hour.name
+
+    // Fill with 'AM' or 'PM' based on the time block
+    for (let i = fromIndex; i < toIndex; i++) {
+      row[i] = i < 24 ? 'AM' : 'PM' // Assuming 'AM' for blocks before 12:00 and 'PM' for those after
+    }
+
+    return row
+  })
+}
+
+const Gantt = ({ control }: { control: Control<FormValues> }) => {
+  const formValues = useWatch({
+    name: 'hours',
+    control,
+  })
+
+  const chart = generateGanttChart(formValues)
+  console.log(chart)
+
+  return (
+    <>
+      {chart.map((v) => (
+        <div className="flex border-solid border border-slate-200">
+          {v.map((half, idx) => {
+            if (idx === 0)
+              return <div className="overflow-auto w-60 h-6">{half}</div>
+            if (half === 'AM')
+              return (
+                <div className="w-4 bg-blue-400 border border-dashed"></div>
+              )
+            if (half === 'PM')
+              return (
+                <div className="w-4 bg-orange-400 border border-dashed"></div>
+              )
+            return <div className="w-4"></div>
+          })}
+        </div>
+      ))}
+    </>
   )
 }
