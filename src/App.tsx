@@ -4,6 +4,54 @@ import dayjs from 'dayjs'
 import './App.css'
 import useSet from './hooks/use-set'
 import { Hours } from './components/Hours'
+import {
+  Link,
+  Outlet,
+  RouterProvider,
+  createBrowserRouter,
+} from 'react-router-dom'
+
+const Root = () => {
+  return (
+    <>
+      <nav className="navbar">
+        <ul className="menu menu-horizontal">
+          <li>
+            <Link to={`/hours`}>Hours</Link>
+          </li>
+          <li>
+            <Link to={`/diff`}>Diff</Link>
+          </li>
+          <li>
+            <Link to={`/about`}>About</Link>
+          </li>
+        </ul>
+      </nav>
+      <Outlet />
+    </>
+  )
+}
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Root />,
+    children: [
+      {
+        path: '/about',
+        element: <div>ei!</div>,
+      },
+      {
+        path: '/diff',
+        element: <DateDiff></DateDiff>,
+      },
+      {
+        path: '/hours',
+        element: <Hours />,
+      },
+    ],
+  },
+])
 
 const DatePicker = (props: {
   selected: Date
@@ -28,7 +76,7 @@ function getDateArray(from: Date, to: Date) {
   )
 }
 
-function App() {
+function DateDiff() {
   const [startDate, setStartDate] = useState<Date>(new Date())
   const [endDate, setEndDate] = useState<Date>(new Date())
   const [diff, setDiff] = useState(0)
@@ -103,10 +151,10 @@ function App() {
           )
         })}
       </div>
-      <div className="divider"></div>
-      <Hours></Hours>
     </>
   )
 }
 
-export default App
+const Shell = () => <RouterProvider router={router} />
+
+export default Shell
