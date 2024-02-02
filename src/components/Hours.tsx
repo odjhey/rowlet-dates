@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form'
 
 export const Hours = () => {
@@ -86,6 +87,7 @@ export default function App() {
     control,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<FormValues>({
     defaultValues: {
       hours: [{ name: 'test', from: '00:00', to: '00:00' }],
@@ -179,6 +181,11 @@ export default function App() {
         </div>
         <Total control={control} />
         <Gantt control={control} />
+        <SerializeForm
+          setHours={(hours) => {
+            setValue('hours', hours)
+          }}
+        />
       </form>
     </div>
   )
@@ -222,27 +229,79 @@ const Gantt = ({ control }: { control: Control<FormValues> }) => {
   })
 
   const chart = generateGanttChart(formValues)
-  console.log(chart)
 
   return (
     <>
-      {chart.map((v) => (
-        <div className="flex border-solid border border-slate-200">
-          {v.map((half, idx) => {
-            if (idx === 0)
-              return <div className="overflow-auto w-60 h-6">{half}</div>
+      {chart.map((v, idx) => (
+        <div key={idx} className="flex border-solid border border-slate-200">
+          {v.map((half, idxH) => {
+            if (idxH === 0)
+              return (
+                <div key={idxH} className="overflow-auto w-60 h-6">
+                  {half}
+                </div>
+              )
             if (half === 'AM')
               return (
-                <div className="w-4 bg-blue-400 border border-dashed"></div>
+                <div
+                  key={idxH}
+                  className="w-4 bg-blue-400 border border-dashed"
+                ></div>
               )
             if (half === 'PM')
               return (
-                <div className="w-4 bg-orange-400 border border-dashed"></div>
+                <div
+                  key={idxH}
+                  className="w-4 bg-orange-400 border border-dashed"
+                ></div>
               )
-            return <div className="w-4"></div>
+            return <div key={idxH} className="w-4"></div>
           })}
         </div>
       ))}
     </>
   )
+}
+
+const SerializeForm = ({
+  setHours,
+}: {
+  setHours: (hours: { to: string; name: string; from: string }[]) => void
+}) => {
+  const { register, watch } = useForm()
+
+  const inputText = watch('inputText')
+
+  useEffect(() => {
+    if (inputText) {
+      try {
+        const result = serializeTextToTimeBlocks(inputText)
+        setHours(result)
+        console.log(result)
+      } catch (error) {
+        console.error((error as Error).message)
+      }
+    }
+  }, [inputText]) // Re-run the effect when `inputText` changes
+
+  return (
+    <textarea
+      className="textarea textarea-bordered min-h-40"
+      {...register('inputText')}
+      placeholder="Enter times and names"
+    />
+  )
+}
+
+function serializeTextToTimeBlocks(input: string): TimeBlock[] {
+  const timeBlockRegex = /^(\d{2}:\d{2})-(\d{2}:\d{2})\s+(.*)$/
+  return input
+    .split('\n') // Split the input into lines
+    .filter((line) => line.trim() !== '') // Filter out empty lines
+    .map((line) => {
+      const match = line.match(timeBlockRegex)
+      if (!match) throw new Error(`Invalid line format: ${line}`)
+      const [, from, to, name] = match
+      return { name, from, to }
+    })
 }
