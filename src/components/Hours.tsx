@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { useEffect } from 'react'
 import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form'
 
@@ -11,6 +12,8 @@ export const Hours = () => {
 }
 
 type FormValues = {
+  date: string
+  tz: string
   hours: {
     name: string
     from: string
@@ -19,17 +22,32 @@ type FormValues = {
 }
 
 const Total = ({ control }: { control: Control<FormValues> }) => {
-  const formValues = useWatch({
-    name: 'hours',
+  const hours = useWatch({
     control,
+    name: 'hours',
   })
-  const summary = formValues.reduce<string[]>((acc, current) => {
-    return [...acc, `${current.from}-${current.to} ${current.name}`]
+
+  const tz = useWatch({
+    control,
+    name: 'tz',
+  })
+
+  const date = useWatch({
+    control,
+    name: 'date',
+  })
+
+  const summary = hours.reduce<string[]>((acc, current) => {
+    return [...acc, `- ${current.from}-${current.to} ${current.name}`]
   }, [])
 
-  const totalMins = formValues.reduce((acc, current) => {
+  const totalMins = hours.reduce((acc, current) => {
     return acc + calculateTimeDifference(current.from, current.to).mins
   }, 0)
+
+  const header = [`# ${date} (${tz})`, `## Today's Tasks`]
+
+  const footer = [`## Todo Next`, `## Today's Thoughts`]
 
   return (
     <>
@@ -49,7 +67,7 @@ const Total = ({ control }: { control: Control<FormValues> }) => {
       <textarea
         readOnly
         className="textarea textarea-bordered min-h-40"
-        value={summary.join('\n')}
+        value={[...header, ...summary, ...footer].join('\n')}
       ></textarea>
     </>
   )
@@ -90,6 +108,8 @@ export default function App() {
     setValue,
   } = useForm<FormValues>({
     defaultValues: {
+      date: dayjs().format('YYYY-MM-DD'),
+      tz: 'GMT+8',
       hours: [{ name: 'test', from: '00:00', to: '00:00' }],
     },
     mode: 'onBlur',
@@ -105,6 +125,42 @@ export default function App() {
   return (
     <div>
       <form className="flex flex-col justify-center gap-1">
+        <div>
+          <input
+            placeholder="date"
+            type="date"
+            {...register(`date` as const, {
+              required: true,
+            })}
+            className={errors?.date ? 'error' : 'input input-sm input-bordered'}
+          />
+          <input
+            placeholder="tz"
+            {...register(`tz` as const, {
+              required: true,
+            })}
+            className={errors?.tz ? 'error' : 'input input-sm input-bordered'}
+          />
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            onClick={() => {
+              setValue('tz', 'JST', { shouldValidate: true })
+            }}
+          >
+            JST
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            onClick={() => {
+              setValue('tz', 'GMT+8', { shouldValidate: true })
+            }}
+          >
+            GMT+8
+          </button>
+        </div>
+
         {fields.map((field, index) => {
           return (
             <div key={field.id}>
