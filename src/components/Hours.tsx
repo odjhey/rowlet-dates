@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { useEffect } from 'react'
 import { useForm, useFieldArray, useWatch, Control } from 'react-hook-form'
+import { useEntryStorage } from '../hooks/use-storage'
 
 export const Hours = () => {
   return (
@@ -106,6 +107,7 @@ export default function App() {
     formState: { errors },
     watch,
     setValue,
+    getValues,
   } = useForm<FormValues>({
     defaultValues: {
       date: dayjs().format('YYYY-MM-DD'),
@@ -241,7 +243,28 @@ export default function App() {
           setHours={(hours) => {
             setValue('hours', hours)
           }}
+          getHours={() => {
+            return hourWatcher
+          }}
         />
+
+        <SaveControl
+          getEntry={() => {
+            const v = getValues()
+            return {
+              date: v.date,
+              tz: v.tz,
+              hours: deserializeTimeBlocksToText(v.hours),
+            }
+          }}
+        ></SaveControl>
+        <SaveFiles
+          loadToUi={({ date, hours, tz }) => {
+            setValue('date', date)
+            setValue('tz', tz)
+            setValue('hours', serializeTextToTimeBlocks(hours))
+          }}
+        ></SaveFiles>
       </form>
     </div>
   )
@@ -319,12 +342,102 @@ const Gantt = ({ control }: { control: Control<FormValues> }) => {
   )
 }
 
+const SaveControl = ({
+  getEntry,
+}: {
+  getEntry: () => { date: string; tz: string; hours: string }
+}) => {
+  const [, { isLoading, newEntry }] = useEntryStorage()
+
+  if (isLoading) {
+    return 'loading'
+  }
+
+  return (
+    <div className="border border-solid border-accent">
+      <button
+        type="button"
+        className="btn btn-sm"
+        onClick={() => {
+          const data = getEntry()
+          newEntry({
+            date: data.date,
+            hours: data.hours,
+            tz: data.tz,
+          })
+        }}
+      >
+        save
+      </button>
+    </div>
+  )
+}
+
+const SaveFiles = ({
+  loadToUi,
+}: {
+  loadToUi: (entry: {
+    id: string
+    date: string
+    tz: string
+    hours: string
+  }) => void
+}) => {
+  const [entries, { isLoading, listEntries, getEntry }] = useEntryStorage()
+
+  if (isLoading) {
+    return 'loading'
+  }
+
+  return (
+    <div className="">
+      <div>Save Files</div>
+      <button
+        type="button"
+        className="btn btn-sm"
+        onClick={() => {
+          listEntries()
+        }}
+      >
+        refresh
+      </button>
+      <div className="flex gap-1">
+        {entries.reverse().map((entry) => {
+          return (
+            <div key={entry.id}>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline border-blue-300"
+                onClick={() => {
+                  getEntry(entry.id).then((entry) => {
+                    if (entry) {
+                      loadToUi(entry)
+                    }
+                  })
+                }}
+              >
+                {entry.id}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const SerializeForm = ({
   setHours,
+  getHours,
 }: {
   setHours: (hours: { to: string; name: string; from: string }[]) => void
+  getHours: () => {
+    name: string
+    from: string
+    to: string
+  }[]
 }) => {
-  const { register, watch } = useForm()
+  const { register, watch, setValue } = useForm<{ inputText: string }>()
 
   const inputText = watch('inputText')
 
@@ -341,11 +454,24 @@ const SerializeForm = ({
   }, [inputText]) // Re-run the effect when `inputText` changes
 
   return (
-    <textarea
-      className="textarea textarea-bordered min-h-40"
-      {...register('inputText')}
-      placeholder="Enter times and names"
-    />
+    <>
+      <textarea
+        className="textarea textarea-bordered min-h-40"
+        {...register('inputText')}
+        placeholder="Enter times and names"
+      />
+      <div>
+        <button
+          type="button"
+          className="btn btn-sm"
+          onClick={() => {
+            setValue('inputText', deserializeTimeBlocksToText(getHours()))
+          }}
+        >
+          take
+        </button>
+      </div>
+    </>
   )
 }
 
@@ -360,4 +486,10 @@ function serializeTextToTimeBlocks(input: string): TimeBlock[] {
       const [, from, to, name] = match
       return { name, from, to }
     })
+}
+
+function deserializeTimeBlocksToText(timeBlocks: TimeBlock[]): string {
+  return timeBlocks
+    .map(({ from, to, name }) => `${from}-${to} ${name}`)
+    .join('\n')
 }
