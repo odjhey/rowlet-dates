@@ -1,0 +1,161 @@
+.date-counter {
+  --btn-focus-scale: 1;
+  min-width: 0;
+}
+
+.date-counter .btn {
+  animation: none;
+}
+
+.date-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.date-range-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.date-range-field .input {
+  width: auto;
+  max-width: 100%;
+}
+
+.date-counts {
+  margin: 8px 0;
+}
+
+.date-note {
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.date-calendar {
+  max-width: 36rem;
+  margin: -4px;
+  padding: 4px;
+  overflow-x: auto;
+  scroll-padding: 4px;
+  font-size: 12px;
+}
+
+.date-weekdays,
+.date-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  min-width: calc(7 * (5ch + 2px) + 6 * 4px);
+}
+
+.date-weekdays {
+  margin-bottom: 4px;
+  color: var(--app-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.date-week + .date-week {
+  margin-top: 4px;
+}
+
+.date-days,
+.date-selected-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.date-calendar .date-day {
+  position: relative;
+  width: 100%;
+  padding: 3px 0;
+  font-size: 12px;
+  scroll-margin: 4px;
+}
+
+.date-calendar .date-day:focus-visible {
+  z-index: 1;
+  outline: 2px solid #222;
+  outline-offset: 2px;
+}
+
+.date-keyboard-help {
+  margin-top: 8px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.date-keyboard-help summary {
+  min-height: 26px;
+  width: fit-content;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+.date-keyboard-help p {
+  margin: 4px 0;
+}
+
+.date-selected-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.date-day[aria-current='date'] {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Saturday/Sunday: bold and gray on top of the visible Sat/Sun label. */
+.date-day.date-day-weekend {
+  border-color: #777;
+  background: #e4e4e4;
+  font-weight: 600;
+}
+
+.date-counter .date-day[aria-pressed='true'],
+.date-counter .date-day[aria-pressed='true']:hover {
+  border-color: var(--app-accent);
+  background: var(--app-accent);
+  color: #fff;
+}
+
+.date-day[aria-pressed='true'] time {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.date-selected {
+  margin-top: 12px;
+}
+
+.date-selected-list {
+  gap: 4px 12px;
+}
+
+.date-selected-list li {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 600px), (pointer: coarse) {
+  .date-counter .btn,
+  .date-counter .input,
+  .date-keyboard-help summary {
+    min-height: 44px;
+  }
+
+  .date-counter .input {
+    height: auto;
+    font-size: 16px;
+  }
+}

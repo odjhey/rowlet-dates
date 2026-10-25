@@ -1,0 +1,57 @@
+.skip-link {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 50;
+  padding: 2px 8px;
+  border: 1px solid #999;
+  border-radius: 2px;
+  background: #fff;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.app-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+}
+
+.app-nav a {
+  display: inline-block;
+  min-height: 24px;
+  line-height: 24px;
+}
+
+.app-nav a[aria-current='page'] {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app-main {
+  min-width: 0;
+  padding: 0 12px 12px;
+}
+
+.app-main:focus {
+  outline: none;
+}
+
+.about {
+  max-width: 65ch;
+}
+
+.about .panel-title {
+  margin-top: 12px;
+}
+
+.about p,
+.not-found p {
+  margin: 4px 0 8px;
+}
