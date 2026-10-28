@@ -5,6 +5,12 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 import { useEntryStorage } from '../hooks/use-storage'
 import { HOURS_DRAFT_KEY, readDraft, writeDraft } from '../libs/drafts'
+import {
+  activityMinutes,
+  formatDuration,
+  isValidTime,
+  toMinutes,
+} from '../libs/hours-time'
 import './Hours.css'
 
 type Activity = {
@@ -45,35 +51,9 @@ const pad = (value: number) => String(value).padStart(2, '0')
 
 const TZ_PRESETS = ['GMT+8', 'JST']
 
-function isValidTime(time: string): boolean {
-  return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time)
-}
-
-function toMinutes(time: string): number | null {
-  if (!isValidTime(time)) return null
-  const [hours, minutes] = time.split(':').map(Number)
-  return hours * 60 + minutes
-}
-
-// Same-day absolute difference: an end earlier than the start is not treated as overnight.
-function activityMinutes(activity: Activity): number | null {
-  const from = toMinutes(activity.from)
-  const to = toMinutes(activity.to)
-  if (from === null || to === null) return null
-  return Math.abs(to - from)
-}
-
 function slotTime(slot: number): string {
   const minutes = slot * SLOT_MINUTES
   return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`
-}
-
-function formatDuration(totalMinutes: number): string {
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  if (!hours) return `${minutes} min`
-  if (!minutes) return `${hours} h`
-  return `${hours} h ${minutes} min`
 }
 
 function activityLabel(activity: Activity, index: number): string {
