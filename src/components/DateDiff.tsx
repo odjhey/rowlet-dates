@@ -1,13 +1,20 @@
 import './DateDiff.css'
 import { useId, useLayoutEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
+import {
+  countWeekendDays,
+  formatDateValue,
+  isWeekend,
+  lastDayOfMonth,
+  MAX_DAY,
+  parseDateValue,
+  parseLimit,
+  toDateValue,
+  toUtcDate,
+  weekdayIndex,
+} from '../libs/dates'
 import { DIFF_DRAFT_KEY, readDraft, writeDraft } from '../libs/drafts'
 
-// Calendar dates are whole UTC day numbers, so DST changes and timezone
-// offsets can never shift a date onto its neighbour.
-const DAY_MS = 86_400_000
-// Last day a JavaScript Date can represent (8.64e15 ms after the epoch).
-const MAX_DAY = 100_000_000
 const MONTHS_PER_PAGE = 6
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -24,57 +31,9 @@ const weekdayFormat = new Intl.DateTimeFormat('en-GB', {
 })
 const numberFormat = new Intl.NumberFormat('en-GB')
 
-const toUtcDate = (day: number) => new Date(day * DAY_MS)
-
-const parseDateValue = (value: string): number | null => {
-  const match = /^(\d{4,6})-(\d{2})-(\d{2})$/.exec(value)
-  if (!match) return null
-  const year = Number(match[1])
-  const month = Number(match[2]) - 1
-  const dayOfMonth = Number(match[3])
-  // setUTCFullYear keeps years below 100 literal, unlike Date.UTC.
-  const date = new Date(0)
-  date.setUTCFullYear(year, month, dayOfMonth)
-  if (
-    date.getUTCFullYear() !== year ||
-    date.getUTCMonth() !== month ||
-    date.getUTCDate() !== dayOfMonth
-  ) {
-    return null
-  }
-  return date.getTime() / DAY_MS
-}
-
-const formatDateValue = (year: number, monthIndex: number, day: number) =>
-  [
-    String(year).padStart(4, '0'),
-    String(monthIndex + 1).padStart(2, '0'),
-    String(day).padStart(2, '0'),
-  ].join('-')
-
-const toDateValue = (day: number) => {
-  const date = toUtcDate(day)
-  return formatDateValue(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-  )
-}
-
 const todayValue = () => {
   const now = new Date()
   return formatDateValue(now.getFullYear(), now.getMonth(), now.getDate())
-}
-
-const lastDayOfMonth = (day: number, monthsAhead: number) => {
-  const date = toUtcDate(day)
-  const end = new Date(0)
-  end.setUTCFullYear(
-    date.getUTCFullYear(),
-    date.getUTCMonth() + monthsAhead + 1,
-    0,
-  )
-  return end.getTime() / DAY_MS
 }
 
 const countLabel = (count: number, singular: string, plural: string) =>
@@ -83,24 +42,6 @@ const countLabel = (count: number, singular: string, plural: string) =>
 // Compact YY-MM-DD ddd label, e.g. 26-10-01 Thu.
 const dayLabel = (day: number) =>
   `${toDateValue(day).slice(-8)} ${weekdayFormat.format(toUtcDate(day))}`
-
-// 1970-01-01 (day 0) was a Thursday; 0 is Sunday and 6 is Saturday.
-const weekdayIndex = (day: number) => (((day + 4) % 7) + 7) % 7
-const isWeekend = (day: number) => {
-  const index = weekdayIndex(day)
-  return index === 0 || index === 6
-}
-
-// Counts Saturdays and Sundays across the whole range without walking it.
-const countWeekendDays = (start: number, end: number) => {
-  const total = end - start + 1
-  const fullWeeks = Math.floor(total / 7)
-  let weekend = fullWeeks * 2
-  for (let day = start + fullWeeks * 7; day <= end; day += 1) {
-    if (isWeekend(day)) weekend += 1
-  }
-  return weekend
-}
 
 type DiffDraft = {
   startValue: string
@@ -126,27 +67,6 @@ const isDiffDraft = (value: unknown): value is DiffDraft => {
     Array.isArray(draft.selectedDates) &&
     draft.selectedDates.every((date) => typeof date === 'string')
   )
-}
-
-type LimitResult =
-  | { kind: 'empty' }
-  | { kind: 'invalid'; message: string }
-  | { kind: 'valid'; limit: number }
-
-const parseLimit = (value: string): LimitResult => {
-  const text = value.trim()
-  if (text === '') return { kind: 'empty' }
-  const limit = /^\d+$/.test(text) ? Number(text) : 0
-  if (limit < 1) {
-    return {
-      kind: 'invalid',
-      message: 'Enter a whole number of days, 1 or more.',
-    }
-  }
-  if (!Number.isSafeInteger(limit)) {
-    return { kind: 'invalid', message: 'That day limit is too large.' }
-  }
-  return { kind: 'valid', limit }
 }
 
 export function DateDiff() {
