@@ -45,9 +45,13 @@ npm run dev
 
 ```sh
 npm run lint
+npm run test
 npm run build
 npm run preview
 ```
+
+`npm run test` runs the Hours time helper tests with Node's built-in test runner
+(`node:test`), so no extra dependency is needed.
 
 The pre-push hook runs `npm run build`. Vercel's rewrite in `vercel.json` supports direct navigation to client-side routes.
 
