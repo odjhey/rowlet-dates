@@ -33,7 +33,7 @@ const newEntry = async (entry: Omit<Entry, 'id'>): Promise<string> => {
   const id = generateId()
   const newEntry = { ...entry, id }
   const entries = await fetchEntries()
-  await saveEntries([...entries, newEntry])
+  saveEntries([...entries, newEntry])
   return id
 }
 

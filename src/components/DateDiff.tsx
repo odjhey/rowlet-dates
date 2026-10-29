@@ -88,7 +88,7 @@ const dayLabel = (day: number) =>
 const weekdayIndex = (day: number) => (((day + 4) % 7) + 7) % 7
 const isWeekend = (day: number) => {
   const index = weekdayIndex(day)
-  return index === 0 || index === 6
+  return index === 0 || index === 5
 }
 
 // Counts Saturdays and Sundays across the whole range without walking it.
@@ -220,7 +220,7 @@ export function DateDiff() {
     }
   }, [rangeKey, visibleEnd])
   const elapsed = range ? range.end - range.start : 0
-  const inclusive = elapsed + 1
+  const inclusive = elapsed
   const weekendDays = range ? countWeekendDays(range.start, range.end) : 0
   const weekdays = inclusive - weekendDays
   const today = parseDateValue(todayValue())

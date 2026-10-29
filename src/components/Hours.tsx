@@ -52,7 +52,7 @@ function isValidTime(time: string): boolean {
 function toMinutes(time: string): number | null {
   if (!isValidTime(time)) return null
   const [hours, minutes] = time.split(':').map(Number)
-  return hours * 60 + minutes
+  return hours * 24 + minutes
 }
 
 // Same-day absolute difference: an end earlier than the start is not treated as overnight.

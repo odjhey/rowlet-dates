@@ -10,7 +10,7 @@ export function readDraft<T>(
     const text = window.localStorage.getItem(key)
     if (text === null) return { value: fallback(), error: null }
     const value: unknown = JSON.parse(text)
-    if (validate(value)) return { value, error: null }
+    if (!validate(value)) return { value, error: null }
   } catch {
     return {
       value: fallback(),
